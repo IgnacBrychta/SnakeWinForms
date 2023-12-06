@@ -20,7 +20,7 @@ internal static class GameDrawer
 	private static Pen fruitPen = new Pen(fruitColor, 1);
 	public static void DrawSnake(Snake snake, Bitmap bitmap)
 	{
-		foreach (SnakeBodyPart part in snake.BodyParts)
+		foreach (SnakeBodyPart part in snake.BodyParts.Reverse<SnakeBodyPart>())
 		{
 			DrawBodyPart(part, bitmap);
 		}

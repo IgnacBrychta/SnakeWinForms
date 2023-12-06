@@ -16,7 +16,7 @@ public partial class MainWindow : Form
 	Snake snake;
 	Rectangle screenBorder;
 	Rectangle scaledScreenBorder;
-	public int desiredFPS = 60;
+	public int desiredFPS = 90;
 	Timer timer;
 	private Keys pressedKey = Keys.W;
 	private Keys lastPressedKey = Keys.W;
@@ -32,7 +32,7 @@ public partial class MainWindow : Form
 	public int fruitsToEatToWin = 50;
 	public int increaseSpeedEveryXfruits = 10;
 	public float snakeSpeedMultiplier = 1.15f;
-	int startingSegments = 5;
+	int startingSegments = 30;
 	int startingOffset = 30;
 	int maxSpeed = 3;
 
@@ -40,14 +40,14 @@ public partial class MainWindow : Form
 	public float snakeSpeed = 3;
 	public int SnakeSpeed { get => Convert.ToInt32(snakeSpeed); }
 	bool inputLocked = false;
-	//SoundPlayer fruitCollected = new SoundPlayer() { SoundLocation = "../../../sounds/fruit collect.wav" };
-	//SoundPlayer backgroundMusic = new SoundPlayer() { SoundLocation = "../../../sounds/8bit.wav" };
 	WaveOutEvent outputDeviceFruit;
 	WaveOutEvent outputDeviceBackground;
+	WaveOutEvent outputDeviceGameOver;
 	AudioFileReader fruitCollected;
 	AudioFileReader backgroundMusic;
-	Song currentSong = Song.Background;
-	const int backgroundMusicLength = 43;
+	AudioFileReader gameOverSound;
+	List<string> history = new List<string>();
+
 	public MainWindow()
 	{
 		InitializeComponent();
@@ -65,15 +65,23 @@ public partial class MainWindow : Form
 		scaledScreenBorder = new Rectangle(0, 0, screenBorder.Width / scale, screenBorder.Height / scale);
 		KeyPreview = true;
 		textBoxSpeed.Text = GetActualSpeed();// Math.Round(snakeSpeed, 1).ToString();
+		//MaximizeBox = false;
+		//FormBorderStyle = FormBorderStyle.FixedDialog;
+		Load += MainWindow_Load;
 
 		outputDeviceFruit = new WaveOutEvent();
 		outputDeviceBackground = new WaveOutEvent();
+		outputDeviceGameOver = new WaveOutEvent();
 		fruitCollected = new AudioFileReader("../../../sounds/fruit collected.mp3");
 		backgroundMusic = new AudioFileReader("../../../sounds/8bit.wav");
+		gameOverSound = new AudioFileReader("../../../sounds/game over.mp3");
 		outputDeviceFruit.Init(fruitCollected);
-		outputDeviceFruit.Volume = 0.3f;
+		outputDeviceFruit.Volume = 0.1f;
 		outputDeviceBackground.Init(backgroundMusic);
-
+		outputDeviceGameOver.Init(gameOverSound);
+#warning pøidat nìjaké to nastavení navíc
+#warning super mega ultra easter egg had
+#warning zmìnit kurzor na hada
 		outputDeviceFruit.PlaybackStopped += (s, e) =>
 		{
 			fruitCollected.Position = 0;
@@ -83,6 +91,17 @@ public partial class MainWindow : Form
 		{
 			backgroundMusic.Position = 0;
 		};
+
+		outputDeviceGameOver.PlaybackStopped += (s, e) =>
+		{
+			gameOverSound.Position = 0;
+		};
+	}
+
+	private void MainWindow_Load(object? sender, EventArgs e)
+	{
+		MaximumSize = Size;
+		MinimumSize = Size;
 	}
 
 	private void SetColorTheme(Control parent)
@@ -112,6 +131,7 @@ public partial class MainWindow : Form
 
 	private void ButtonResetClick(object? sender, EventArgs e)
 	{
+		history.Clear();
 		buttonReset.Enabled = false;
 		fruits.Clear();
 		gameOver = false;
@@ -128,14 +148,23 @@ public partial class MainWindow : Form
 	Keys temp = Keys.W;
 	private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
 	{
-		if(inputLocked) return;
 		Keys key = e.KeyCode;
-		if (!allowedKeys.Contains(key) || key == pressedKey) return;
+		if (!allowedKeys.Contains(key) || key == pressedKey || inputLocked) return;
 
 		inputLocked = true;
 		temp = lastPressedKey;
 		lastPressedKey = pressedKey;
 		pressedKey = key;
+	}
+
+	private void History()
+	{
+		string str = "";
+		foreach (var item in snake.BodyParts)
+		{
+			str += item.ToString() + " | ";
+		}
+		history.Add(str);
 	}
 
 	private string GetActualSpeed()
@@ -147,6 +176,23 @@ public partial class MainWindow : Form
 	{
 		if (frameCounter % (SnakeSpeed <= 0 ? 1 : SnakeSpeed) == 0)
 		{
+			History();
+			/*if(pressedKey == Keys.S && lastPressedKey != Keys.W)
+			{
+				snake.MoveUp();
+			}
+			else if(pressedKey == Keys.W && lastPressedKey != Keys.S)
+			{
+				snake.MoveDown();
+			}
+			else if (pressedKey == Keys.A && lastPressedKey != Keys.D)
+			{
+				snake.MoveRight();
+			}
+			else if (pressedKey == Keys.D && lastPressedKey != Keys.A)
+			{
+				snake.MoveLeft();
+			}*/
 			switch (pressedKey)
 			{
 				case Keys.S:
@@ -168,7 +214,14 @@ public partial class MainWindow : Form
 			}
 		}
 
-		if (TryFindSnakeCollision() || TryDetectWallCollision()) return;
+		if (TryFindSnakeCollision() || TryDetectWallCollision())
+		{
+			history.Add("------------");
+			History();
+			DrawNewFrame();
+			ShowGameOverScreen();
+			return;
+		}
 		TryFindFruitCollision();
 		TryGenerateFruit();
 		DrawNewFrame();
@@ -183,7 +236,6 @@ public partial class MainWindow : Form
 	{
 		if (!snake.DidSnakeLeaveGameArea(scaledScreenBorder)) return false;
 
-		ShowGameOverScreen();
 		return true;
 	}
 
@@ -211,7 +263,6 @@ public partial class MainWindow : Form
 	{
 		if (!snake.DetectSelfCollision()) return false;
 
-		ShowGameOverScreen();
 		return true;
 	}
 
@@ -227,9 +278,14 @@ public partial class MainWindow : Form
 	private void ShowGameOverScreen()
 	{
 		timer.Stop();
+		outputDeviceBackground.Stop();
+		outputDeviceGameOver.Play();
+#warning ignored
+		/*
 		Bitmap bitmap = (Bitmap)snakeGameScreen.Image;
 		GameDrawer.DrawGameOverOverlay(bitmap);
 		snakeGameScreen.Image = Bitmap;
+		*/
 		gameOver = true;
 		buttonStop.Enabled = false;
 		buttonReset.Enabled = true;
@@ -269,12 +325,10 @@ public partial class MainWindow : Form
 	{
 		timer.Enabled = false;
 		buttonReset.Enabled = true;
-#warning not ideal implementation
 	}
 
 	private void ButtonStart_Click(object? sender, EventArgs e)
 	{
-#warning checknout rychlost zda se mi ze cim vyssi tim po´malejsi coz je scam
 		if (gameOver) return;
 		timer.Enabled = true;
 		buttonStop.Enabled = true;
@@ -292,10 +346,4 @@ public partial class MainWindow : Form
 		_playSound = !_playSound;
 	}
 
-}
-
-enum Song
-{
-	Background,
-	FruitCollected
 }
