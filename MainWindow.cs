@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Media;
 using System.Xml.Schema;
 using NAudio;
+using NAudio.Wave;
 using Timer = System.Windows.Forms.Timer;
 
 namespace SnakeWinForms;
@@ -39,6 +40,14 @@ public partial class MainWindow : Form
 	public float snakeSpeed = 3;
 	public int SnakeSpeed { get => Convert.ToInt32(snakeSpeed); }
 	bool inputLocked = false;
+	//SoundPlayer fruitCollected = new SoundPlayer() { SoundLocation = "../../../sounds/fruit collect.wav" };
+	//SoundPlayer backgroundMusic = new SoundPlayer() { SoundLocation = "../../../sounds/8bit.wav" };
+	WaveOutEvent outputDeviceFruit;
+	WaveOutEvent outputDeviceBackground;
+	AudioFileReader fruitCollected;
+	AudioFileReader backgroundMusic;
+	Song currentSong = Song.Background;
+	const int backgroundMusicLength = 43;
 	public MainWindow()
 	{
 		InitializeComponent();
@@ -56,6 +65,24 @@ public partial class MainWindow : Form
 		scaledScreenBorder = new Rectangle(0, 0, screenBorder.Width / scale, screenBorder.Height / scale);
 		KeyPreview = true;
 		textBoxSpeed.Text = GetActualSpeed();// Math.Round(snakeSpeed, 1).ToString();
+
+		outputDeviceFruit = new WaveOutEvent();
+		outputDeviceBackground = new WaveOutEvent();
+		fruitCollected = new AudioFileReader("../../../sounds/fruit collected.mp3");
+		backgroundMusic = new AudioFileReader("../../../sounds/8bit.wav");
+		outputDeviceFruit.Init(fruitCollected);
+		outputDeviceFruit.Volume = 0.3f;
+		outputDeviceBackground.Init(backgroundMusic);
+
+		outputDeviceFruit.PlaybackStopped += (s, e) =>
+		{
+			fruitCollected.Position = 0;
+		};
+
+		outputDeviceBackground.PlaybackStopped += (s, e) =>
+		{
+			backgroundMusic.Position = 0;
+		};
 	}
 
 	private void SetColorTheme(Control parent)
@@ -88,7 +115,7 @@ public partial class MainWindow : Form
 		buttonReset.Enabled = false;
 		fruits.Clear();
 		gameOver = false;
-		snakeSpeed = 5;
+		snakeSpeed = 3;
 		snake = new Snake(startingSegments, startingOffset, startingOffset, snakeCellWidth, fruits);
 		Bitmap b = Bitmap;
 		GameDrawer.ClearBitmap(b);
@@ -98,15 +125,17 @@ public partial class MainWindow : Form
 		textBoxScore.Text = string.Empty;
 	}
 
+	Keys temp = Keys.W;
 	private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
 	{
 		if(inputLocked) return;
 		Keys key = e.KeyCode;
 		if (!allowedKeys.Contains(key) || key == pressedKey) return;
 
+		inputLocked = true;
+		temp = lastPressedKey;
 		lastPressedKey = pressedKey;
 		pressedKey = key;
-		inputLocked = true;
 	}
 
 	private string GetActualSpeed()
@@ -116,7 +145,6 @@ public partial class MainWindow : Form
 
 	private void NewFrameTick(object? sender, EventArgs e)
 	{
-		inputLocked = false;	
 		if (frameCounter % (SnakeSpeed <= 0 ? 1 : SnakeSpeed) == 0)
 		{
 			switch (pressedKey)
@@ -147,6 +175,8 @@ public partial class MainWindow : Form
 
 		if (fruitsToEatToWin <= snake.Score) ShowYouWonScreen();
 		frameCounter++;
+
+		inputLocked = false;
 	}
 
 	private bool TryDetectWallCollision()
@@ -159,7 +189,7 @@ public partial class MainWindow : Form
 
 	private void PlayCollectSound()
 	{
-
+		outputDeviceFruit.Play();
 	}
 
 	private void TryFindFruitCollision()
@@ -254,7 +284,7 @@ public partial class MainWindow : Form
 
 	private void PlayBackgroundMusic()
 	{
-
+		outputDeviceBackground.Play();
 	}
 
 	private void SoundSettingsChange(object? sender, EventArgs e)
@@ -262,4 +292,10 @@ public partial class MainWindow : Form
 		_playSound = !_playSound;
 	}
 
+}
+
+enum Song
+{
+	Background,
+	FruitCollected
 }
