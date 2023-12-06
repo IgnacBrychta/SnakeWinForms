@@ -55,11 +55,11 @@ internal static class GameDrawer
 	public static void DrawGameOverOverlay(Bitmap bitmap, string? text = null)
 	{
 		Graphics g = Graphics.FromImage(bitmap);
-		Font font = new Font("Bernard MT Condensed", 250);
+		Font font = new Font("Bernard MT Condensed", 150);
 		Brush brush = new SolidBrush(Color.White);
 
 		// Specify the text and its position
-		text ??= "Narazils!";
+		text ??= "Obecná prohra.";
 		PointF position = new PointF(10, 40);
 
 		// Draw the text on the Bitmap

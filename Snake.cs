@@ -80,22 +80,22 @@ internal class Snake
 
 	public void MoveUp()
 	{
-		Move(0, -1);	
+		Move(0, 1);	
 	}
 
 	public void MoveDown()
 	{
-		Move(0, 1);
+		Move(0, -1);
 	}
 
 	public void MoveLeft()
 	{
-		Move(-1, 0);
+		Move(1, 0);
 	}
 
 	public void MoveRight()
 	{
-		Move(1, 0);
+		Move(-1, 0);
 	}
 
 	public override string ToString()

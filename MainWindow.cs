@@ -16,23 +16,23 @@ public partial class MainWindow : Form
 	Snake snake;
 	Rectangle screenBorder;
 	Rectangle scaledScreenBorder;
-	public int desiredFPS = 90;
+	public int desiredFPS = 60;
 	Timer timer;
 	private Keys pressedKey = Keys.W;
-	private Keys lastPressedKey = Keys.W;
+	private Keys lastPressedKey = Keys.Q;
 	Keys[] allowedKeys = new[] { Keys.W, Keys.S, Keys.D, Keys.A };
 	public int fruitSpawnChance = 50 /* %*/;
 	List<Point> fruits = new List<Point>();
 	Random random = new Random();
 	Bitmap Bitmap { get => (Bitmap)snakeGameScreen.Image; }
-	public int maxFruitsOnMap = 5;
+	public int maxFruitsOnMap = 500;
 	public int scale = 30;
 	public int snakeCellWidth = 30;
 	public long frameCounter = 0;
-	public int fruitsToEatToWin = 50;
+	public int fruitsToEatToWin = 500;
 	public int increaseSpeedEveryXfruits = 10;
 	public float snakeSpeedMultiplier = 1.15f;
-	int startingSegments = 30;
+	int startingSegments = 5;
 	int startingOffset = 30;
 	int maxSpeed = 3;
 
@@ -68,13 +68,16 @@ public partial class MainWindow : Form
 		//MaximizeBox = false;
 		//FormBorderStyle = FormBorderStyle.FixedDialog;
 		Load += MainWindow_Load;
+		Icon = new Icon("../../../resources/had png.ico");
+		//Cursor = new Cursor("../../../resources/had png.ico");
+		CursorChange.ChangeCursor("../../../resources/had-png.cur");
 
 		outputDeviceFruit = new WaveOutEvent();
 		outputDeviceBackground = new WaveOutEvent();
 		outputDeviceGameOver = new WaveOutEvent();
 		fruitCollected = new AudioFileReader("../../../sounds/fruit collected.mp3");
 		backgroundMusic = new AudioFileReader("../../../sounds/8bit.wav");
-		gameOverSound = new AudioFileReader("../../../sounds/game over.mp3");
+		gameOverSound = new AudioFileReader("../../../sounds/game over cut.mp3");
 		outputDeviceFruit.Init(fruitCollected);
 		outputDeviceFruit.Volume = 0.1f;
 		outputDeviceBackground.Init(backgroundMusic);
@@ -145,26 +148,17 @@ public partial class MainWindow : Form
 		textBoxScore.Text = string.Empty;
 	}
 
-	Keys temp = Keys.W;
+	Keys temp = Keys.Q;
 	private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
 	{
 		Keys key = e.KeyCode;
 		if (!allowedKeys.Contains(key) || key == pressedKey || inputLocked) return;
 
 		inputLocked = true;
+
 		temp = lastPressedKey;
 		lastPressedKey = pressedKey;
 		pressedKey = key;
-	}
-
-	private void History()
-	{
-		string str = "";
-		foreach (var item in snake.BodyParts)
-		{
-			str += item.ToString() + " | ";
-		}
-		history.Add(str);
 	}
 
 	private string GetActualSpeed()
@@ -176,48 +170,37 @@ public partial class MainWindow : Form
 	{
 		if (frameCounter % (SnakeSpeed <= 0 ? 1 : SnakeSpeed) == 0)
 		{
-			History();
-			/*if(pressedKey == Keys.S && lastPressedKey != Keys.W)
-			{
-				snake.MoveUp();
-			}
-			else if(pressedKey == Keys.W && lastPressedKey != Keys.S)
-			{
-				snake.MoveDown();
-			}
-			else if (pressedKey == Keys.A && lastPressedKey != Keys.D)
-			{
-				snake.MoveRight();
-			}
-			else if (pressedKey == Keys.D && lastPressedKey != Keys.A)
-			{
-				snake.MoveLeft();
-			}*/
 			switch (pressedKey)
 			{
 				case Keys.S:
 					if (lastPressedKey == Keys.W) goto case Keys.W;
-					snake.MoveUp();
+					snake.MoveDown();
 					break;
 				case Keys.W:
 					if (lastPressedKey == Keys.S) goto case Keys.S;
-					snake.MoveDown();
+					snake.MoveUp();
 					break;
 				case Keys.D:
 					if (lastPressedKey == Keys.A) goto case Keys.A;
-					snake.MoveLeft();
+					snake.MoveRight();
 					break;
 				case Keys.A:
 					if (lastPressedKey == Keys.D) goto case Keys.D;
-					snake.MoveRight();
+					snake.MoveLeft();
 					break;
 			}
+			/*
+			unlocking input MUST happen HERE when the snake moves, if it is unlocked somewhere else,
+			the snake can collide with itself when it's moving in a particular direction and the player
+			sets it to move in the opposite direction while pressing a key for a perpendicular direction
+			in between
+			trust me, i spent 4+ hours diagnosing this lol
+			*/
+			inputLocked = false;
 		}
 
 		if (TryFindSnakeCollision() || TryDetectWallCollision())
 		{
-			history.Add("------------");
-			History();
 			DrawNewFrame();
 			ShowGameOverScreen();
 			return;
@@ -229,7 +212,7 @@ public partial class MainWindow : Form
 		if (fruitsToEatToWin <= snake.Score) ShowYouWonScreen();
 		frameCounter++;
 
-		inputLocked = false;
+		textBoxSpeed.Text = GetActualSpeed();
 	}
 
 	private bool TryDetectWallCollision()
@@ -255,7 +238,6 @@ public partial class MainWindow : Form
 		if (snake.Score % increaseSpeedEveryXfruits == 0 && snake.Score != 0)
 		{
 			snakeSpeed /= snakeSpeedMultiplier;
-			textBoxSpeed.Text = GetActualSpeed();
 		}
 	}
 
@@ -270,7 +252,7 @@ public partial class MainWindow : Form
 	{
 		timer.Stop();
 		Bitmap bitmap = (Bitmap)snakeGameScreen.Image;
-		GameDrawer.DrawGameOverOverlay(bitmap, "Vyhráls!");
+		GameDrawer.DrawGameOverOverlay(bitmap, "Hra u konce\nSesbírali jste dostatek ovoce!");
 		snakeGameScreen.Image = Bitmap;
 		gameOver = true;
 	}
@@ -280,12 +262,11 @@ public partial class MainWindow : Form
 		timer.Stop();
 		outputDeviceBackground.Stop();
 		outputDeviceGameOver.Play();
-#warning ignored
-		/*
+		
 		Bitmap bitmap = (Bitmap)snakeGameScreen.Image;
-		GameDrawer.DrawGameOverOverlay(bitmap);
+		GameDrawer.DrawGameOverOverlay(bitmap, "Hra u konce:\nHad naboural!");
 		snakeGameScreen.Image = Bitmap;
-		*/
+		
 		gameOver = true;
 		buttonStop.Enabled = false;
 		buttonReset.Enabled = true;
@@ -293,7 +274,7 @@ public partial class MainWindow : Form
 
 	private void TryGenerateFruit()
 	{
-		const int offset = 10;
+		const int offset = 0;
 		if (fruits.Count >= maxFruitsOnMap || random.Next(0, 100) < fruitSpawnChance) return;
 		int fruitX = random.Next(0, scaledScreenBorder.Width - offset),
 			fruitY = random.Next(0, scaledScreenBorder.Height - offset);
@@ -344,6 +325,10 @@ public partial class MainWindow : Form
 	private void SoundSettingsChange(object? sender, EventArgs e)
 	{
 		_playSound = !_playSound;
+		if (outputDeviceBackground.PlaybackState == PlaybackState.Playing && !_playSound) 
+			outputDeviceBackground.Stop();
+		else if (outputDeviceBackground.PlaybackState == PlaybackState.Stopped && _playSound)
+			outputDeviceBackground.Play();
 	}
 
 }
