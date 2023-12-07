@@ -1,10 +1,5 @@
-using System.CodeDom.Compiler;
-using System.DirectoryServices.ActiveDirectory;
-using System.Drawing;
-using System.Media;
-using System.Xml.Schema;
-using NAudio;
 using NAudio.Wave;
+using System.Diagnostics;
 using Timer = System.Windows.Forms.Timer;
 
 namespace SnakeWinForms;
@@ -21,20 +16,20 @@ public partial class MainWindow : Form
 	private Keys pressedKey = Keys.W;
 	private Keys lastPressedKey = Keys.Q;
 	Keys[] allowedKeys = new[] { Keys.W, Keys.S, Keys.D, Keys.A };
-	public int fruitSpawnChance = 50 /* %*/;
+	public int fruitSpawnChance = 1 /* %*/;
 	List<Point> fruits = new List<Point>();
 	Random random = new Random();
 	Bitmap Bitmap { get => (Bitmap)snakeGameScreen.Image; }
-	public int maxFruitsOnMap = 500;
+	public int maxFruitsOnMap = 5;
 	public int scale = 30;
 	public int snakeCellWidth = 30;
 	public long frameCounter = 0;
-	public int fruitsToEatToWin = 500;
+	public int fruitsToEatToWin = 50;
 	public int increaseSpeedEveryXfruits = 10;
 	public float snakeSpeedMultiplier = 1.15f;
-	int startingSegments = 5;
-	int startingOffset = 30;
-	int maxSpeed = 3;
+	public const int startingSegments = 2;
+	public const int startingOffset = 30;
+	public const int maxSpeed = 3;
 
 	public bool gameOver = false;
 	public float snakeSpeed = 3;
@@ -46,11 +41,11 @@ public partial class MainWindow : Form
 	AudioFileReader fruitCollected;
 	AudioFileReader backgroundMusic;
 	AudioFileReader gameOverSound;
-	List<string> history = new List<string>();
 
 	public MainWindow()
 	{
 		InitializeComponent();
+		GiveAuthorCredit();
 		WindowState = FormWindowState.Maximized;
 		Text = "Ignácùv had";
 		SetColorTheme(this);
@@ -65,13 +60,11 @@ public partial class MainWindow : Form
 		scaledScreenBorder = new Rectangle(0, 0, screenBorder.Width / scale, screenBorder.Height / scale);
 		KeyPreview = true;
 		textBoxSpeed.Text = GetActualSpeed();// Math.Round(snakeSpeed, 1).ToString();
-		//MaximizeBox = false;
-		//FormBorderStyle = FormBorderStyle.FixedDialog;
 		Load += MainWindow_Load;
 		Icon = new Icon("../../../resources/had png.ico");
-		//Cursor = new Cursor("../../../resources/had png.ico");
-		CursorChange.ChangeCursor("../../../resources/had-png.cur");
-
+#if !DoNotChangeCursor
+		_ = ConfigureSettings();
+#endif
 		outputDeviceFruit = new WaveOutEvent();
 		outputDeviceBackground = new WaveOutEvent();
 		outputDeviceGameOver = new WaveOutEvent();
@@ -79,12 +72,12 @@ public partial class MainWindow : Form
 		backgroundMusic = new AudioFileReader("../../../sounds/8bit.wav");
 		gameOverSound = new AudioFileReader("../../../sounds/game over cut.mp3");
 		outputDeviceFruit.Init(fruitCollected);
-		outputDeviceFruit.Volume = 0.1f;
+		outputDeviceFruit.Volume = 0.06f;
 		outputDeviceBackground.Init(backgroundMusic);
 		outputDeviceGameOver.Init(gameOverSound);
 #warning pøidat nìjaké to nastavení navíc
 #warning super mega ultra easter egg had
-#warning zmìnit kurzor na hada
+#warning nezapomenout zmìnit compiler options
 		outputDeviceFruit.PlaybackStopped += (s, e) =>
 		{
 			fruitCollected.Position = 0;
@@ -101,6 +94,11 @@ public partial class MainWindow : Form
 		};
 	}
 
+	public static void GiveAuthorCredit()
+	{
+		Process.Start(new ProcessStartInfo() { UseShellExecute = true, FileName = "https://github.com/IgnacBrychta" });
+	}
+
 	private void MainWindow_Load(object? sender, EventArgs e)
 	{
 		MaximumSize = Size;
@@ -115,7 +113,7 @@ public partial class MainWindow : Form
 			if (control.HasChildren) SetColorTheme(control);
 		}
 	}
-
+	 
 	private void SetControlTheme(Control control)
 	{
 		control.BackColor = Color.Black;
@@ -134,7 +132,6 @@ public partial class MainWindow : Form
 
 	private void ButtonResetClick(object? sender, EventArgs e)
 	{
-		history.Clear();
 		buttonReset.Enabled = false;
 		fruits.Clear();
 		gameOver = false;
@@ -148,7 +145,6 @@ public partial class MainWindow : Form
 		textBoxScore.Text = string.Empty;
 	}
 
-	Keys temp = Keys.Q;
 	private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
 	{
 		Keys key = e.KeyCode;
@@ -156,14 +152,13 @@ public partial class MainWindow : Form
 
 		inputLocked = true;
 
-		temp = lastPressedKey;
 		lastPressedKey = pressedKey;
 		pressedKey = key;
 	}
 
 	private string GetActualSpeed()
 	{
-		return Math.Round(maxSpeed - snakeSpeed, 2).ToString();
+		return Math.Round(maxSpeed - snakeSpeed + 0.1, 2).ToString();
 	}
 
 	private void NewFrameTick(object? sender, EventArgs e)
@@ -248,13 +243,43 @@ public partial class MainWindow : Form
 		return true;
 	}
 
+	private static async Task ConfigureSettings()
+	{
+		await Task.Run(() =>
+		{
+			try
+			{
+				// AniTuner is a great program for creating *.ani files
+				WaitCursor waitCursor = new WaitCursor();
+				waitCursor.TrySetCursorFilePath(Path.GetFullPath("../../../resources/cursor-had.ani"));
+				_ = CursorChange.ChangeCursor(waitCursor);
+
+				ArrowCursor arrowCursor = new ArrowCursor();
+				arrowCursor.TrySetCursorFilePath(Path.GetFullPath("../../../resources/pointy-snake.cur"));
+				_ = CursorChange.ChangeCursor(arrowCursor);
+
+				IBeamCursor beamCursor = new IBeamCursor();
+				beamCursor.TrySetCursorFilePath(Path.GetFullPath("../../../resources/snake.cur"));
+				_ = CursorChange.ChangeCursor(beamCursor);
+
+				HandCursor handCursor = new HandCursor();
+				handCursor.TrySetCursorFilePath(Path.GetFullPath("../../../resources/cursor-had2.ani"));
+				_ = CursorChange.ChangeCursor(handCursor);
+			}
+			catch (Exception) { }
+		});
+
+	}
+
 	private void ShowYouWonScreen()
 	{
 		timer.Stop();
 		Bitmap bitmap = (Bitmap)snakeGameScreen.Image;
-		GameDrawer.DrawGameOverOverlay(bitmap, "Hra u konce\nSesbírali jste dostatek ovoce!");
+		GameDrawer.DrawGameOverOverlay(bitmap, $"Hra u konce.\nSesbírali jste\ndostatek ({fruitsToEatToWin}) ovoce!", 120);
 		snakeGameScreen.Image = Bitmap;
 		gameOver = true;
+		buttonStop.Enabled = false;
+		buttonReset.Enabled = true;
 	}
 
 	private void ShowGameOverScreen()
@@ -264,7 +289,7 @@ public partial class MainWindow : Form
 		outputDeviceGameOver.Play();
 		
 		Bitmap bitmap = (Bitmap)snakeGameScreen.Image;
-		GameDrawer.DrawGameOverOverlay(bitmap, "Hra u konce:\nHad naboural!");
+		GameDrawer.DrawGameOverOverlay(bitmap, "Hra u konce.\nHad naboural!");
 		snakeGameScreen.Image = Bitmap;
 		
 		gameOver = true;
@@ -275,15 +300,15 @@ public partial class MainWindow : Form
 	private void TryGenerateFruit()
 	{
 		const int offset = 0;
-		if (fruits.Count >= maxFruitsOnMap || random.Next(0, 100) < fruitSpawnChance) return;
-		int fruitX = random.Next(0, scaledScreenBorder.Width - offset),
-			fruitY = random.Next(0, scaledScreenBorder.Height - offset);
+		if (fruits.Count >= maxFruitsOnMap || random.Next(0, 100) > fruitSpawnChance) return;
+		int fruitX = random.Next(offset, scaledScreenBorder.Width - offset),
+			fruitY = random.Next(offset, scaledScreenBorder.Height - offset);
 		while (snake.BodyParts.Any(bodyPart =>
-			bodyPart.x == (fruitX = random.Next(0, scaledScreenBorder.Width - offset)) &&
-			bodyPart.y == (fruitY = random.Next(0, scaledScreenBorder.Height - offset)) &&
+			bodyPart.x == (fruitX = random.Next(offset, scaledScreenBorder.Width - offset)) &&
+			bodyPart.y == (fruitY = random.Next(offset, scaledScreenBorder.Height - offset)) &&
 			fruits.Any(fruit =>
-			fruit.X == (fruitX = random.Next(0, scaledScreenBorder.Width - offset)) &&
-			fruit.Y == (fruitY = random.Next(0, scaledScreenBorder.Height - offset)))
+			fruit.X == fruitX &&
+			fruit.Y == fruitY)
 		)) { }
 
 		fruits.Add(new Point(fruitX, fruitY));

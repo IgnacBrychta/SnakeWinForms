@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SnakeWinForms;
+﻿namespace SnakeWinForms;
 
 internal static class GameDrawer
 {
@@ -52,10 +45,10 @@ internal static class GameDrawer
 		g.Clear(blankScreenColor);
 	}
 
-	public static void DrawGameOverOverlay(Bitmap bitmap, string? text = null)
+	public static void DrawGameOverOverlay(Bitmap bitmap, string? text = null, int height = 150)
 	{
 		Graphics g = Graphics.FromImage(bitmap);
-		Font font = new Font("Bernard MT Condensed", 150);
+		Font font = new Font("Bernard MT Condensed", height);
 		Brush brush = new SolidBrush(Color.White);
 
 		// Specify the text and its position

@@ -1,20 +1,18 @@
 ﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SnakeWinForms;
 
 internal static class CursorChange
 {
-	public static void ChangeCursor(string curFile, CustomCursor cursor)
+	public static bool ChangeCursor(CustomCursor cursor)
 	{
-		Registry.SetValue(@"HKEY_CURRENT_USER\Control Panel\Cursors\", cursor.FilePath, curFile);
+		if (cursor.FilePath is null) return false;
+		Registry.SetValue(@"HKEY_CURRENT_USER\Control Panel\Cursors\", cursor.type, cursor.FilePath);
 		SystemParametersInfo(SPI_SETCURSORS, 0, 0, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+
+		return true;
 	}
 
 	const int SPI_SETCURSORS = 0x0057;
@@ -25,41 +23,74 @@ internal static class CursorChange
 	public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, uint pvParam, uint fWinIni);
 }
 
-public interface ICursorFileTypeANI 
-{
-	public bool TrySetCursorFilePath(string path);
-}
-public interface ICursorFileTypeCUR
-{
-	public bool TrySetCursorFilePath(string path);
-}
-
 internal abstract class CustomCursor 
 {
 	[DisallowNull]
 	public string? FilePath { get; protected set; }
+	[DisallowNull]
+	internal string? type;
 }
 
-internal class Arrow : CustomCursor, ICursorFileTypeCUR
+internal class ArrowCursor : CustomCursor
 {
+	internal ArrowCursor()
+	{
+		type = "Arrow";
+	}
+
 	public bool TrySetCursorFilePath(string path)
 	{
-		throw new NotImplementedException();
+		if (!File.Exists(path) || !(path.EndsWith(".cur") || path.EndsWith(".ani"))) return false;
+
+		FilePath = path;
+		return true;
 	}
 }
 
-internal class IBeam : CustomCursor, ICursorFileTypeCUR
+internal class IBeamCursor : CustomCursor
 {
+	internal IBeamCursor()
+	{
+		type = "IBeam";
+	}
+
 	public bool TrySetCursorFilePath(string path)
 	{
-		throw new NotImplementedException();
+		if (!File.Exists(path) || !(path.EndsWith(".cur") || path.EndsWith(".ani"))) return false;
+
+		FilePath = path;
+		return true;
 	}
 }
 
-internal class Wait : CustomCursor, ICursorFileTypeANI
+internal class WaitCursor : CustomCursor
 {
+	internal WaitCursor()
+	{
+		type = "Wait";
+	}
+
 	public bool TrySetCursorFilePath(string path)
 	{
-		throw new NotImplementedException();
+		if (!File.Exists(path) || !(path.EndsWith(".cur") || path.EndsWith(".ani"))) return false;
+
+		FilePath = path;
+		return true;
+	}
+}
+
+internal class HandCursor : CustomCursor
+{
+	internal HandCursor()
+	{
+		type = "Hand";
+	}
+
+	public bool TrySetCursorFilePath(string path)
+	{
+		if (!File.Exists(path) || !(path.EndsWith(".cur") || path.EndsWith(".ani"))) return false;
+
+		FilePath = path;
+		return true;
 	}
 }
