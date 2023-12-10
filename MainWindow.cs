@@ -127,6 +127,7 @@ public partial class MainWindow : Form
 		foreach (Control control in controls.Controls)
 		{
 			ResizeAllControls(control);
+			control.Font = new Font(control.Font.Name, control.Font.Size * scaleX);
 			control.Size = new Size(Convert.ToInt32(control.Size.Width * resizedScreen.Width), Convert.ToInt32(control.Size.Height * resizedScreen.Height));
 			control.Location = new Point(Convert.ToInt32(control.Location.X * resizedScreen.Width), Convert.ToInt32(control.Location.Y * resizedScreen.Width));
 		}
