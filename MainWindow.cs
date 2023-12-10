@@ -28,7 +28,7 @@ public partial class MainWindow : Form
 	public int increaseSpeedEveryXfruits = 10;
 	public float snakeSpeedMultiplier = 1.15f;
 	public const int startingSegments = 2;
-	public const int startingOffset = 30;
+	public const int startingOffset = 15;
 	public const int maxSpeed = 3;
 
 	public bool gameOver = false;
@@ -43,11 +43,17 @@ public partial class MainWindow : Form
 	AudioFileReader backgroundMusic;
 	AudioFileReader gameOverSound;
 	AudioFileReader winSound;
-
+	public static float scaleX;
+	public static float scaleY;
+	public static float offsetScaleX = 0f;
+	public static float offsetScaleY = 0f;
+	public RectangleF resizedScreen;
+	Rectangle originalScreen = new Rectangle(0, 0, 2560, 1600);
 	public MainWindow()
 	{
 		InitializeComponent();
-
+		CalculateScaleFactor();
+		ResizeAllControls(this);
 		WindowState = FormWindowState.Maximized;
 		Text = "Ignácùv had";
 		SetColorTheme(this);
@@ -61,10 +67,10 @@ public partial class MainWindow : Form
 		screenBorder = new Rectangle(0, 0, snakeGameScreen.Width, snakeGameScreen.Height);
 		scaledScreenBorder = new Rectangle(0, 0, screenBorder.Width / scale, screenBorder.Height / scale);
 		KeyPreview = true;
-		textBoxSpeed.Text = GetActualSpeed();// Math.Round(snakeSpeed, 1).ToString();
+		textBoxSpeed.Text = GetActualSpeed();
 		Load += MainWindow_Load;
 		Icon = new Icon("../../../resources/had png.ico");
-#if !DoNotChangeCursor
+#if DoNotChangeCursor
 		_ = ConfigureSettings();
 		GiveAuthorCredit();
 #endif
@@ -114,6 +120,27 @@ public partial class MainWindow : Form
 			winSound.Position = 0;
 			if (_playSound) outputDeviceBackground.Play();
 		};
+	}
+
+	private void ResizeAllControls(Control controls)
+	{
+		foreach (Control control in controls.Controls)
+		{
+			ResizeAllControls(control);
+			control.Size = new Size(Convert.ToInt32(control.Size.Width * resizedScreen.Width), Convert.ToInt32(control.Size.Height * resizedScreen.Height));
+			control.Location = new Point(Convert.ToInt32(control.Location.X * resizedScreen.Width), Convert.ToInt32(control.Location.Y * resizedScreen.Width));
+		}
+	}
+
+	private void CalculateScaleFactor()
+	{
+		Rectangle currentScreen = Screen.PrimaryScreen!.WorkingArea;
+
+		scaleX = originalScreen.Width * 1f / currentScreen.Width + offsetScaleX;
+		scaleY = originalScreen.Height * 1f / currentScreen.Height + offsetScaleY;
+
+		resizedScreen = new RectangleF(0f, 0f, scaleX, scaleY);
+
 	}
 
 	public static void GiveAuthorCredit()
@@ -316,7 +343,7 @@ public partial class MainWindow : Form
 	{
 		timer.Stop();
 		outputDeviceBackground.Pause();
-		outputDeviceGameOver.Play();
+		if (_playSound) outputDeviceGameOver.Play();
 
 		Bitmap bitmap = (Bitmap)snakeGameScreen.Image;
 		GameDrawer.DrawGameOverOverlay(bitmap, "Hra u konce.\nHad naboural!");
