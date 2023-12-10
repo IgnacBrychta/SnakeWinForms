@@ -48,7 +48,7 @@ public partial class MainWindow : Form
 	public static float offsetScaleX = 0f;
 	public static float offsetScaleY = 0f;
 	public RectangleF resizedScreen;
-	Rectangle originalScreen = new Rectangle(0, 0, 2560, 1600);
+	Rectangle originalScreen = new Rectangle(0, 0, 2560, 1520);
 	public MainWindow()
 	{
 		InitializeComponent();
