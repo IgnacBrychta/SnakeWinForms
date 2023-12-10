@@ -70,7 +70,7 @@ public partial class MainWindow : Form
 		textBoxSpeed.Text = GetActualSpeed();
 		Load += MainWindow_Load;
 		Icon = new Icon("../../../resources/had png.ico");
-#if DoNotChangeCursor
+#if !DoNotChangeCursor
 		_ = ConfigureSettings();
 		GiveAuthorCredit();
 #endif
