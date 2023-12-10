@@ -77,7 +77,7 @@
 			// groupBox4
 			// 
 			groupBox4.Controls.Add(textBoxSpeed);
-			groupBox4.Location = new Point(1303, 52);
+			groupBox4.Location = new Point(1303, 47);
 			groupBox4.Name = "groupBox4";
 			groupBox4.Size = new Size(227, 116);
 			groupBox4.TabIndex = 4;
@@ -87,10 +87,10 @@
 			// textBoxSpeed
 			// 
 			textBoxSpeed.Font = new Font("Bernard MT Condensed", 13F, FontStyle.Bold, GraphicsUnit.Point);
-			textBoxSpeed.Location = new Point(20, 37);
+			textBoxSpeed.Location = new Point(22, 42);
 			textBoxSpeed.Name = "textBoxSpeed";
 			textBoxSpeed.ReadOnly = true;
-			textBoxSpeed.Size = new Size(148, 49);
+			textBoxSpeed.Size = new Size(176, 49);
 			textBoxSpeed.TabIndex = 0;
 			textBoxSpeed.TextAlign = HorizontalAlignment.Center;
 			// 
@@ -99,7 +99,7 @@
 			groupBox3.Controls.Add(textBoxScore);
 			groupBox3.Location = new Point(1070, 52);
 			groupBox3.Name = "groupBox3";
-			groupBox3.Size = new Size(227, 116);
+			groupBox3.Size = new Size(227, 111);
 			groupBox3.TabIndex = 3;
 			groupBox3.TabStop = false;
 			groupBox3.Text = "Skóre";
@@ -110,7 +110,7 @@
 			textBoxScore.Location = new Point(20, 37);
 			textBoxScore.Name = "textBoxScore";
 			textBoxScore.ReadOnly = true;
-			textBoxScore.Size = new Size(148, 49);
+			textBoxScore.Size = new Size(184, 49);
 			textBoxScore.TabIndex = 0;
 			textBoxScore.TextAlign = HorizontalAlignment.Center;
 			// 
@@ -132,13 +132,13 @@
 			radioButtonSoundsNo.Name = "radioButtonSoundsNo";
 			radioButtonSoundsNo.Size = new Size(76, 36);
 			radioButtonSoundsNo.TabIndex = 1;
-			radioButtonSoundsNo.TabStop = true;
 			radioButtonSoundsNo.Text = "Ne";
 			radioButtonSoundsNo.UseVisualStyleBackColor = true;
 			// 
 			// radioButtonSoundsYes
 			// 
 			radioButtonSoundsYes.AutoSize = true;
+			radioButtonSoundsYes.Checked = true;
 			radioButtonSoundsYes.Location = new Point(63, 46);
 			radioButtonSoundsYes.Name = "radioButtonSoundsYes";
 			radioButtonSoundsYes.Size = new Size(88, 36);
@@ -169,7 +169,7 @@
 			// 
 			snakeGameScreen.Location = new Point(19, 38);
 			snakeGameScreen.Name = "snakeGameScreen";
-			snakeGameScreen.Size = new Size(2500, 1140);
+			snakeGameScreen.Size = new Size(2500, 1153);
 			snakeGameScreen.TabIndex = 1;
 			snakeGameScreen.TabStop = false;
 			// 
@@ -178,7 +178,7 @@
 			groupBoxGame.Controls.Add(snakeGameScreen);
 			groupBoxGame.Location = new Point(12, 218);
 			groupBoxGame.Name = "groupBoxGame";
-			groupBoxGame.Size = new Size(2540, 1200);
+			groupBoxGame.Size = new Size(2540, 1216);
 			groupBoxGame.TabIndex = 2;
 			groupBoxGame.TabStop = false;
 			groupBoxGame.Text = "Hra";
@@ -187,7 +187,7 @@
 			// 
 			AutoScaleDimensions = new SizeF(13F, 32F);
 			AutoScaleMode = AutoScaleMode.Font;
-			ClientSize = new Size(1597, 737);
+			ClientSize = new Size(2577, 1501);
 			Controls.Add(groupBoxGame);
 			Controls.Add(groupBox1);
 			Name = "MainWindow";

@@ -38,14 +38,16 @@ public partial class MainWindow : Form
 	WaveOutEvent outputDeviceFruit;
 	WaveOutEvent outputDeviceBackground;
 	WaveOutEvent outputDeviceGameOver;
+	WaveOutEvent outputWin;
 	AudioFileReader fruitCollected;
 	AudioFileReader backgroundMusic;
 	AudioFileReader gameOverSound;
+	AudioFileReader winSound;
 
 	public MainWindow()
 	{
 		InitializeComponent();
-		GiveAuthorCredit();
+
 		WindowState = FormWindowState.Maximized;
 		Text = "Ignácùv had";
 		SetColorTheme(this);
@@ -64,20 +66,32 @@ public partial class MainWindow : Form
 		Icon = new Icon("../../../resources/had png.ico");
 #if !DoNotChangeCursor
 		_ = ConfigureSettings();
+		GiveAuthorCredit();
 #endif
 		outputDeviceFruit = new WaveOutEvent();
 		outputDeviceBackground = new WaveOutEvent();
 		outputDeviceGameOver = new WaveOutEvent();
+		outputWin = new WaveOutEvent();
 		fruitCollected = new AudioFileReader("../../../sounds/fruit collected.mp3");
 		backgroundMusic = new AudioFileReader("../../../sounds/8bit.wav");
 		gameOverSound = new AudioFileReader("../../../sounds/game over cut.mp3");
+		winSound = new AudioFileReader("../../../sounds/win sound.mp3");
 		outputDeviceFruit.Init(fruitCollected);
 		outputDeviceFruit.Volume = 0.06f;
 		outputDeviceBackground.Init(backgroundMusic);
+		outputDeviceBackground.Volume = 1.0f;
 		outputDeviceGameOver.Init(gameOverSound);
-#warning pøidat nìjaké to nastavení navíc
-#warning super mega ultra easter egg had
-#warning nezapomenout zmìnit compiler options
+		outputWin.Init(winSound);
+
+#if !IgnoreDisplayWarning
+		MessageBox.Show(
+			"Tento program byl vyvíjen pro 10\" 2560 px × 1600 px displej GPD Win Max 2, je možné, že se na tomto displeji nebude vše zobrazovat správnì.",
+			"Upozornìní",
+			MessageBoxButtons.OK,
+			MessageBoxIcon.Warning
+			);
+#endif
+
 		outputDeviceFruit.PlaybackStopped += (s, e) =>
 		{
 			fruitCollected.Position = 0;
@@ -86,11 +100,19 @@ public partial class MainWindow : Form
 		outputDeviceBackground.PlaybackStopped += (s, e) =>
 		{
 			backgroundMusic.Position = 0;
+			if (_playSound) outputDeviceBackground.Play();
 		};
 
 		outputDeviceGameOver.PlaybackStopped += (s, e) =>
 		{
 			gameOverSound.Position = 0;
+			if (_playSound) outputDeviceBackground.Play();
+		};
+
+		outputWin.PlaybackStopped += (s, e) =>
+		{
+			winSound.Position = 0;
+			if (_playSound) outputDeviceBackground.Play();
 		};
 	}
 
@@ -113,7 +135,7 @@ public partial class MainWindow : Form
 			if (control.HasChildren) SetColorTheme(control);
 		}
 	}
-	 
+
 	private void SetControlTheme(Control control)
 	{
 		control.BackColor = Color.Black;
@@ -143,6 +165,7 @@ public partial class MainWindow : Form
 		pressedKey = Keys.W;
 		lastPressedKey = Keys.W;
 		textBoxScore.Text = string.Empty;
+		outputDeviceBackground.Stop();
 	}
 
 	private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
@@ -274,6 +297,7 @@ public partial class MainWindow : Form
 	private void ShowYouWonScreen()
 	{
 		timer.Stop();
+		if (_playSound) PlayWinningSound();
 		Bitmap bitmap = (Bitmap)snakeGameScreen.Image;
 		GameDrawer.DrawGameOverOverlay(bitmap, $"Hra u konce.\nSesbírali jste\ndostatek ({fruitsToEatToWin}) ovoce!", 120);
 		snakeGameScreen.Image = Bitmap;
@@ -282,16 +306,22 @@ public partial class MainWindow : Form
 		buttonReset.Enabled = true;
 	}
 
+	private void PlayWinningSound()
+	{
+		outputDeviceBackground.Pause();
+		outputWin.Play();
+	}
+
 	private void ShowGameOverScreen()
 	{
 		timer.Stop();
-		outputDeviceBackground.Stop();
+		outputDeviceBackground.Pause();
 		outputDeviceGameOver.Play();
-		
+
 		Bitmap bitmap = (Bitmap)snakeGameScreen.Image;
 		GameDrawer.DrawGameOverOverlay(bitmap, "Hra u konce.\nHad naboural!");
 		snakeGameScreen.Image = Bitmap;
-		
+
 		gameOver = true;
 		buttonStop.Enabled = false;
 		buttonReset.Enabled = true;
@@ -350,7 +380,7 @@ public partial class MainWindow : Form
 	private void SoundSettingsChange(object? sender, EventArgs e)
 	{
 		_playSound = !_playSound;
-		if (outputDeviceBackground.PlaybackState == PlaybackState.Playing && !_playSound) 
+		if (outputDeviceBackground.PlaybackState == PlaybackState.Playing && !_playSound)
 			outputDeviceBackground.Stop();
 		else if (outputDeviceBackground.PlaybackState == PlaybackState.Stopped && _playSound)
 			outputDeviceBackground.Play();

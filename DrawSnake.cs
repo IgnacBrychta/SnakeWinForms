@@ -36,7 +36,11 @@ internal static class GameDrawer
 	private static void DrawFruit(Point fruit, Bitmap bitmap)
 	{
 		Graphics g = Graphics.FromImage(bitmap);
+#if FillCell
+		g.FillRectangle(Brushes.Red, fruit.X * _snakeCellWidth, fruit.Y * _snakeCellWidth, _snakeCellWidth, _snakeCellWidth);
+#else
 		g.DrawRectangle(fruitPen, fruit.X * _snakeCellWidth, fruit.Y * _snakeCellWidth, _snakeCellWidth, _snakeCellWidth);
+#endif
 	}
 
 	public static void ClearBitmap(Bitmap bitmap)
