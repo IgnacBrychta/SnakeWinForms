@@ -70,7 +70,7 @@ public partial class MainWindow : Form
 		textBoxSpeed.Text = GetActualSpeed();
 		Load += MainWindow_Load;
 		Icon = new Icon("../../../resources/had png.ico");
-#if DoNotChangeCursor
+#if !DoNotChangeCursor
 		_ = ConfigureSettings();
 		GiveAuthorCredit();
 #endif
@@ -89,7 +89,7 @@ public partial class MainWindow : Form
 		outputDeviceGameOver.Init(gameOverSound);
 		outputWin.Init(winSound);
 
-#if IgnoreDisplayWarning
+#if !IgnoreDisplayWarning
 		MessageBox.Show(
 			"Tento program byl vyvíjen pro 10\" 2560 px × 1600 px displej GPD Win Max 2, je možné, že se na tomto displeji nebude vše zobrazovat správnì.",
 			"Upozornìní",
