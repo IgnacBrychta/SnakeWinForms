@@ -8,7 +8,7 @@ The Snake project is implemented in C# using Windows Forms. It consists of a mai
 ### Key Components
 1. **Snake Class:** Represents the snake in the game. Manages its movement, collision detection, and scoring.
 2. **GameDrawer Class:** Responsible for drawing game elements on the screen, including the snake, fruits, and game overlays.
-3. **CursorChange Class:** Configures custom cursor files for different game states.
+3. **CursorChange Class:** Configures custom cursor files, it's a great feature, trust me.
 
 ## Game Logic
 - The game starts with a snake composed of a specified number of segments.
